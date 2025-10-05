@@ -28,7 +28,7 @@ require('./lib/passport');
 const app = express();
 
 // ==================== CONFIGURACIÓN BÁSICA ====================
-app.set('port', process.env.PORT || 4500);
+app.set('port', process.env.PORT || 3000);
 
 // Habilitar CORS (configura según tus necesidades)
 app.use(cors({
@@ -172,7 +172,7 @@ if (process.env.NODE_ENV === 'production') {
 app.use(session(sessionConfig));
 app.use(flash());
 
-// 11. CSRF Protection mejorada
+// 11. CSRF Protection mejorada (excluir rutas API)
 const csrfProtection = csrf({
     cookie: {
         httpOnly: true,
@@ -180,7 +180,14 @@ const csrfProtection = csrf({
         sameSite: 'strict'
     }
 });
-app.use(csrfProtection);
+
+// Aplicar CSRF solo a rutas que no sean API
+app.use((req, res, next) => {
+    if (req.path.startsWith('/auth/api') || req.path.startsWith('/test/')) {
+        return next();
+    }
+    return csrfProtection(req, res, next);
+});
 
 // 12. Headers de seguridad adicionales
 app.use((req, res, next) => {
@@ -258,6 +265,8 @@ app.use((req, res, next) => {
 // Importar y configurar rutas como API
 app.use(require('./router/index'))
 app.use('/pagina', require('./router/pagina.router'))
+app.use('/auth', require('./router/auth.router'))
+app.use('/test', require('./router/test.router'))
 
 // Configurar variables globales
 app.use((req, res, next) => {

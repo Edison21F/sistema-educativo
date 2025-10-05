@@ -62,12 +62,18 @@ const usuarioModel = require('../models/sql/usuario')
 const rolModel = require('../models/sql/rol')
 const detalleRolModel = require('../models/sql/detalleRol')
 const pageModel = require('../models/sql/page')
+const teacherModel = require('../models/sql/teacher')
+const studentModel = require('../models/sql/student')
+const administratorModel = require('../models/sql/administrator')
 
 //intaciar los modelos a sincronizar
 const usuario = usuarioModel(sequelize, Sequelize)
 const rol = rolModel(sequelize, Sequelize)
 const detalleRol = detalleRolModel(sequelize, Sequelize)
 const page = pageModel(sequelize, Sequelize)
+const teacher = teacherModel(sequelize, Sequelize)
+const student = studentModel(sequelize, Sequelize)
+const administrator = administratorModel(sequelize, Sequelize)
 
 //relaciones o foreingKeys
 
@@ -80,10 +86,36 @@ detalleRol.belongsTo(rol)
 usuario.hasMany(page)
 page.belongsTo(usuario)
 
+// Relaciones para el sistema de autenticación
+// Los maestros pueden tener múltiples páginas asignadas
+teacher.hasMany(page, { foreignKey: 'teacherId' })
+page.belongsTo(teacher, { foreignKey: 'teacherId' })
+
+// Los estudiantes pueden tener múltiples páginas asignadas
+student.hasMany(page, { foreignKey: 'studentId' })
+page.belongsTo(student, { foreignKey: 'studentId' })
+
+// Los administradores pueden gestionar múltiples páginas
+administrator.hasMany(page, { foreignKey: 'administratorId' })
+page.belongsTo(administrator, { foreignKey: 'administratorId' })
+
+// Relaciones entre usuarios y roles
+teacher.hasMany(detalleRol, { foreignKey: 'teacherId' })
+detalleRol.belongsTo(teacher, { foreignKey: 'teacherId' })
+
+student.hasMany(detalleRol, { foreignKey: 'studentId' })
+detalleRol.belongsTo(student, { foreignKey: 'studentId' })
+
+administrator.hasMany(detalleRol, { foreignKey: 'administratorId' })
+detalleRol.belongsTo(administrator, { foreignKey: 'administratorId' })
+
 // Exportar el objeto sequelize
 module.exports = {
   usuario,
   rol,
   detalleRol,
-  page
+  page,
+  teacher,
+  student,
+  administrator
 };
